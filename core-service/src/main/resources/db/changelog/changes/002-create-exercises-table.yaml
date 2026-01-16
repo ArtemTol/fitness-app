@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-exercises-table
+      author: fitness_app
+      changes:
+        - createTable:
+            tableName: exercises
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_exercises
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: VARCHAR(255)
+              - column:
+                  name: muscle_group
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: requires_equipment
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: exercises
+            columns:
+              - column:
+                  name: muscle_group
+            indexName: idx_exercises_muscle_group

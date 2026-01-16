@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users-table
+      author: fitness_app
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_users
+              - column:
+                  name: username
+                  type: VARCHAR(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: VARCHAR(100)
+              - column:
+                  name: birth_date
+                  type: DATE
+              - column:
+                  name: weight_kg
+                  type: DECIMAL(5,2)
+              - column:
+                  name: height_cm
+                  type: INTEGER
+              - column:
+                  name: avatar_url
+                  type: VARCHAR(255)
+              - column:
+                  name: level_num
+                  type: INTEGER
+                  defaultValue: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: experience_points
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: streak_days
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_activity_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+            indexName: idx_users_username
+
+        - createIndex:
+            tableName: users
+            columns:
+              - column:
+                  name: email
+            indexName: idx_users_email
