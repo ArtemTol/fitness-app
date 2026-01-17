@@ -1,8 +1,8 @@
 databaseChangeLog:
   - include:
       file: db/changelog/changes/001-create-users-table.yaml
-      relativeToChangelogFile: false  # ИЛИ уберите эту строку
+      relativeToChangelogFile: false
 
   - include:
       file: db/changelog/changes/002-create-exercises-table.yaml
-      relativeToChangelogFile: false  # ИЛИ уберите эту строку
+      relativeToChangelogFile: false
