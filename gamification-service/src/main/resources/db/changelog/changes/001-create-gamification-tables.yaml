@@ -1,0 +1,209 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-gamification-tables
+      author: fitness_app
+      changes:
+        - createTable:
+            tableName: achievements
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: icon_url
+                  type: VARCHAR(255)
+              - column:
+                  name: exp_reward
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: condition
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createTable:
+            tableName: quests
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reward_exp
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: available_from
+                  type: TIMESTAMP
+              - column:
+                  name: available_to
+                  type: TIMESTAMP
+              - column:
+                  name: goal
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: condition_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createTable:
+            tableName: user_achievements
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: achievement_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: progress
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_earned
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: earned_at
+                  type: TIMESTAMP
+              - column:
+                  name: assigned_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createTable:
+            tableName: user_quests
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quest_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: progress
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_completed
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed_at
+                  type: TIMESTAMP
+              - column:
+                  name: claimed_reward
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: assigned_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: user_achievements
+            baseColumnNames: achievement_id
+            referencedTableName: achievements
+            referencedColumnNames: id
+            constraintName: fk_user_achievements_achievement
+
+        - addForeignKeyConstraint:
+            baseTableName: user_quests
+            baseColumnNames: quest_id
+            referencedTableName: quests
+            referencedColumnNames: id
+            constraintName: fk_user_quests_quest

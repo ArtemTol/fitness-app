@@ -1,15 +1,18 @@
 package com.fitness.core.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "users")
 @Data
@@ -19,19 +22,19 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(name = "username", nullable = false, length = 50)
-    private String username;
+    String username;
 
     @Column(name = "email", nullable = false, length = 100)
-    private String email;
+    String email;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "password", nullable = false) //TODO: Зашифровать
+    String password;
 
     @Column(name = "full_name", length = 100)
-    private String fullName;
+    String fullName;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;

@@ -26,6 +26,12 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
 
+  kafka:
+    topic-client: ${KAFKA_CLIENT_TOPIC:clients.status}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
 logging:
   level:
     com.fitness.core: DEBUG
+    org.apache.kafka: DEBUG
+    org.springframework.kafka: DEBUG

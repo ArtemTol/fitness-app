@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,9 +22,14 @@ import java.util.stream.Collectors;
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
+    private final KafkaService kafkaService;
 
     public List<ExerciseDTO> getAllExercises() {
         log.info("Getting all exercises");
+        ExerciseDTO body = new ExerciseDTO();
+        body.setId(new Random().nextLong());
+        body.setCreatedAt(LocalDateTime.now());
+        kafkaService.sendKafkaMessage(body);
         return exerciseRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -56,7 +63,6 @@ public class ExerciseService {
 
         Exercise savedExercise = exerciseRepository.save(exercise);
         log.info("Exercise created successfully with id: {}", savedExercise.getId());
-
         return convertToDTO(savedExercise);
     }
 

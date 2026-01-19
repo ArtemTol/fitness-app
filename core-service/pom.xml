@@ -14,7 +14,7 @@
 	<artifactId>core-service</artifactId>
 
 	<dependencies>
-		<!-- Spring Boot зависимости - версии берутся из родительского Spring Boot -->
+		<!-- Spring Boot зависимости -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -55,5 +55,12 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.3.0</version>
 		</dependency>
+
+		<!-- Kafka -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
 	</dependencies>
 </project>

@@ -3,12 +3,17 @@ package com.fitness.core.dto;
 import com.fitness.core.model.Exercise;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @Data
-public class ExerciseDTO {
+@NoArgsConstructor
+public class ExerciseDTO implements Serializable {
     private Long id;
 
     @NotBlank(message = "Exercise name is required")
@@ -33,4 +38,6 @@ public class ExerciseDTO {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
+    //TODO статус тренировки
 }

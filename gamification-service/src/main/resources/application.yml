@@ -7,12 +7,17 @@ spring:
   application:
     name: gamification-service
 
+  # 🗄️ НАСТРОЙКИ БАЗЫ ДАННЫХ
   datasource:
-    url: jdbc:postgresql://localhost:5441/fitness_gamification
+    url: jdbc:postgresql://localhost:5440/fitness_gamification
     username: fitness_user
     password: fitness_password
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
 
+  # 📊 НАСТРОЙКИ JPA/HIBERNATE
   jpa:
     hibernate:
       ddl-auto: validate
@@ -20,20 +25,36 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          batch_size: 20
     show-sql: true
+    open-in-view: false
 
+  # 🗄️ НАСТРОЙКИ LIQUIBASE
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
+    drop-first: false
+    contexts: dev
 
+  # 🔗 НАСТРОЙКИ KAFKA (ДОБАВЬТЕ ЭТО!)
   kafka:
-    bootstrap-servers: localhost:9093
+    bootstrap-servers: localhost:9093  # ← порт из docker-compose
     consumer:
-      group-id: gamification-service-group
+      group-id: gamification-service-group  # ← уникальная группа
+      auto-offset-reset: earliest  # ← читать с начала
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: "*"  # ← разрешить все пакеты (для теста)
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+logging:
+  level:
+    com.fitness.gamification: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.liquibase: INFO
+    org.apache.kafka: INFO  # ← добавьте для отладки Kafka
