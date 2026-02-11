@@ -25,7 +25,7 @@ public class ExerciseService {
     private final KafkaService kafkaService;
 
     public List<ExerciseDTO> getAllExercises() {
-        log.info("Getting all exercises");
+        log.info("Получение всех упражнений");
         ExerciseDTO body = new ExerciseDTO();
         body.setId(new Random().nextLong());
         body.setCreatedAt(LocalDateTime.now());
@@ -36,14 +36,14 @@ public class ExerciseService {
     }
 
     public ExerciseDTO getExerciseById(Long id) {
-        log.info("Getting exercise by id: {}", id);
+        log.info("Получение упражнения по id: {}", id);
         Exercise exercise = exerciseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Упражнение не найдено с id: " + id));
         return convertToDTO(exercise);
     }
 
     public List<ExerciseDTO> getExercisesByMuscleGroup(Exercise.MuscleGroup muscleGroup) {
-        log.info("Getting exercises by muscle group: {}", muscleGroup);
+        log.info("Получение упражнений по группе мышц: {}", muscleGroup);
         return exerciseRepository.findByMuscleGroup(muscleGroup).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -51,7 +51,7 @@ public class ExerciseService {
 
     @Transactional
     public ExerciseDTO createExercise(CreateExerciseRequest request) {
-        log.info("Creating new exercise: {}", request.getName());
+        log.info("Создание нового упражнения: {}", request.getName());
 
         Exercise exercise = new Exercise();
         exercise.setName(request.getName());
@@ -62,16 +62,16 @@ public class ExerciseService {
         exercise.setRequiresEquipment(request.getRequiresEquipment());
 
         Exercise savedExercise = exerciseRepository.save(exercise);
-        log.info("Exercise created successfully with id: {}", savedExercise.getId());
+        log.info("Упражнение успешно создано с id: {}", savedExercise.getId());
         return convertToDTO(savedExercise);
     }
 
     @Transactional
     public ExerciseDTO updateExercise(Long id, UpdateExerciseRequest request) {
-        log.info("Updating exercise with id: {}", id);
+        log.info("Обновление упражнения с id: {}", id);
 
         Exercise exercise = exerciseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Упражнение не найдено с id: " + id));
 
         if (request.getName() != null) {
             exercise.setName(request.getName());
@@ -93,21 +93,21 @@ public class ExerciseService {
         }
 
         Exercise updatedExercise = exerciseRepository.save(exercise);
-        log.info("Exercise updated successfully with id: {}", id);
+        log.info("Упражнение успешно обновлено с id: {}", id);
 
         return convertToDTO(updatedExercise);
     }
 
     @Transactional
     public void deleteExercise(Long id) {
-        log.info("Deleting exercise with id: {}", id);
+        log.info("Удаление упражнения с id: {}", id);
 
         if (!exerciseRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Exercise not found with id: " + id);
+            throw new ResourceNotFoundException("Упражнение не найдено с id: " + id);
         }
 
         exerciseRepository.deleteById(id);
-        log.info("Exercise deleted successfully with id: {}", id);
+        log.info("Упражнение успешно удалено с id: {}", id);
     }
 
     private ExerciseDTO convertToDTO(Exercise exercise) {

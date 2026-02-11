@@ -32,24 +32,21 @@ spring:
 
   # 🗄️ НАСТРОЙКИ LIQUIBASE
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/changelog/db.gamification-changelog-master.yaml
     enabled: true
     drop-first: false
     contexts: dev
 
-  # 🔗 НАСТРОЙКИ KAFKA (ДОБАВЬТЕ ЭТО!)
+  # 🔗 НАСТРОЙКИ KAFKA
   kafka:
-    bootstrap-servers: localhost:9093  # ← порт из docker-compose
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    topic-client: ${KAFKA_CLIENT_TOPIC:clients.status}  # Тот же топик, что и в core!
     consumer:
-      group-id: gamification-service-group  # ← уникальная группа
-      auto-offset-reset: earliest  # ← читать с начала
+      group-id: gamification-service-group  # УНИКАЛЬНАЯ группа!
+      auto-offset-reset: earliest
+      enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"  # ← разрешить все пакеты (для теста)
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 logging:
   level:

@@ -3,22 +3,19 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Исправь parent - сделай как в core-service -->
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.2</version> <!-- ИЗМЕНИ ЭТО! -->
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>com.fitness</groupId>
+		<artifactId>fitness-app</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
-	<groupId>com.fitness</groupId>
 	<artifactId>gamification-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>gamification-service</name>
 	<description>gamification-service</description>
 
 	<properties>
-		<java.version>17</java.version> <!-- Или 21 если хочешь -->
+		<java.version>21</java.version> <!-- Или 21 если хочешь -->
 	</properties>
 
 	<dependencies>
@@ -75,7 +72,13 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.3.0</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.fitness</groupId>
+            <artifactId>core-service</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

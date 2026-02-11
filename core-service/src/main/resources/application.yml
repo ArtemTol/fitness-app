@@ -23,7 +23,7 @@ spring:
     show-sql: true
 
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/changelog/db.core-changelog-master.yaml
     enabled: true
 
   kafka:
