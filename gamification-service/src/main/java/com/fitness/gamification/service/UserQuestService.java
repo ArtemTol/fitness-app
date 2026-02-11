@@ -22,6 +22,7 @@ public class UserQuestService {
 
     private final UserQuestRepository userQuestRepository;
     private final QuestRepository questRepository;
+    private final GamificationEventProducer eventProducer;  // 👈 ДОБАВЛЯЕМ!
 
     public List<UserQuestDTO> getUserQuests(Long userId) {
         return userQuestRepository.findByUserId(userId)
@@ -54,9 +55,11 @@ public class UserQuestService {
         userQuest.setProgress(0);
         userQuest.setIsCompleted(false);
         userQuest.setClaimedReward(false);
+        userQuest.setGoal(quest.getGoal());
+        userQuest.setAssignedAt(LocalDateTime.now());
 
         UserQuest saved = userQuestRepository.save(userQuest);
-        log.info("Quest {} assigned to user {}", questId, userId);
+        log.info("✅ Квест '{}' назначен пользователю {}", quest.getTitle(), userId);
 
         return convertToDTO(saved);
     }
@@ -68,15 +71,34 @@ public class UserQuestService {
                 .orElseThrow(() -> new ResourceNotFoundException("User quest not found"));
 
         userQuest.setProgress(progress);
+        userQuest.setUpdatedAt(LocalDateTime.now());
+
+        // 🚀 1. ОТПРАВЛЯЕМ СОБЫТИЕ - Прогресс обновлен!
+        Quest quest = userQuest.getQuest();
+        eventProducer.publishQuestProgress(
+                userId,
+                questId,
+                quest.getTitle(),
+                progress,
+                quest.getGoal()
+        );
 
         // Проверяем выполнение квеста
-        Quest quest = userQuest.getQuest();
         if (!userQuest.getIsCompleted() && progress >= quest.getGoal()) {
             userQuest.setIsCompleted(true);
             userQuest.setCompletedAt(LocalDateTime.now());
-            log.info("Quest {} completed by user {}", questId, userId);
+            log.info("🎯 Квест '{}' выполнен пользователем {}!", quest.getTitle(), userId);
 
-            // TODO: Отправить событие в Kafka для начисления опыта
+            // 🚀 2. ОТПРАВЛЯЕМ СОБЫТИЕ - Квест выполнен!
+            eventProducer.publishQuestCompleted(
+                    userId,
+                    questId,
+                    quest.getTitle(),
+                    quest.getType().toString(),
+                    quest.getRewardExp(),
+                    progress,
+                    quest.getGoal()
+            );
         }
 
         return convertToDTO(userQuestRepository.save(userQuest));
@@ -97,11 +119,12 @@ public class UserQuestService {
         }
 
         userQuest.setClaimedReward(true);
+        userQuestRepository.save(userQuest);
 
-        log.info("Reward claimed for quest {} by user {}", questId, userId);
-        // TODO: Отправить событие в Kafka для начисления награды
+        log.info("🎁 Награда за квест '{}' получена пользователем {}",
+                userQuest.getQuest().getTitle(), userId);
 
-        return convertToDTO(userQuestRepository.save(userQuest));
+        return convertToDTO(userQuest);
     }
 
     private UserQuestDTO convertToDTO(UserQuest userQuest) {

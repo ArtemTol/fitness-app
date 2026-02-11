@@ -61,7 +61,7 @@ public class QuestService {
         quest.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
 
         Quest savedQuest = questRepository.save(quest);
-        log.info("Quest created: {}", savedQuest.getId());
+        log.info("✅ Квест создан: {}", savedQuest.getId());
         return convertToDTO(savedQuest);
     }
 
@@ -87,6 +87,25 @@ public class QuestService {
             throw new ResourceNotFoundException("Quest not found with id: " + id);
         }
         questRepository.deleteById(id);
+        log.info("✅ Квест удален: {}", id);
+    }
+
+    // 👇 ДОБАВЛЯЕМ ЭТИ МЕТОДЫ!
+
+    public void assignDailyQuests(Long userId) {
+        log.info("📋 Назначение daily квестов пользователю {}", userId);
+        // TODO: Реализовать логику назначения daily квестов
+    }
+
+    public void assignWeeklyQuests(Long userId) {
+        log.info("📋 Назначение weekly квестов пользователю {}", userId);
+        // TODO: Реализовать логику назначения weekly квестов
+    }
+
+    public void updateQuestProgress(Long userId, String conditionType, int increment) {
+        log.info("📊 Обновление прогресса квеста: user={}, type={}, +{}",
+                userId, conditionType, increment);
+        // TODO: Реализовать логику обновления прогресса квестов
     }
 
     private QuestDTO convertToDTO(Quest quest) {

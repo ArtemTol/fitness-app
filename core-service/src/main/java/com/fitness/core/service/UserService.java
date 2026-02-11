@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final KafkaEventProducer eventProducer;  // 👈 ДОБАВЛЯЕМ!
 
     public List<UserDTO> getAllUsers() {
         log.info("Получение всех пользователей");
@@ -62,10 +64,20 @@ public class UserService {
         user.setBirthDate(request.getBirthDate());
         user.setWeightKg(request.getWeightKg());
         user.setHeightCm(request.getHeightCm());
-        user.setLastActivityAt(java.time.LocalDateTime.now());
+        user.setLevelNum(1); // Начальный уровень
+        user.setExperiencePoints(0);
+        user.setStreakDays(0);
+        user.setLastActivityAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
-        log.info("Пользователь успешно создан с id: {}", savedUser.getId());
+        log.info("✅ Пользователь успешно создан с id: {}", savedUser.getId());
+
+        // 🚀 1. ОТПРАВЛЯЕМ СОБЫТИЕ - Новый пользователь зарегистрирован!
+        eventProducer.sendUserRegisteredEvent(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail()
+        );
 
         return convertToDTO(savedUser);
     }
@@ -93,10 +105,10 @@ public class UserService {
             user.setAvatarUrl(request.getAvatarUrl());
         }
 
-        user.setLastActivityAt(java.time.LocalDateTime.now());
+        user.setLastActivityAt(LocalDateTime.now());
         User updatedUser = userRepository.save(user);
 
-        log.info("Пользователь успешно обновлен с id: {}", id);
+        log.info("✅ Пользователь успешно обновлен с id: {}", id);
         return convertToDTO(updatedUser);
     }
 
@@ -109,34 +121,61 @@ public class UserService {
         }
 
         userRepository.deleteById(id);
-        log.info("Пользователь успешно удален с id: {}", id);
+        log.info("✅ Пользователь успешно удален с id: {}", id);
     }
 
     @Transactional
     public UserDTO addExperience(Long id, Integer points) {
-        log.info("Добавление {} очков опыта пользователю с id: {}", points, id);
+        log.info("➕ Добавление {} очков опыта пользователю с id: {}", points, id);
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден с id: " + id));
 
+        int oldLevel = user.getLevelNum();
         user.setExperiencePoints(user.getExperiencePoints() + points);
-        user.setLastActivityAt(java.time.LocalDateTime.now());
+
+        // Простая логика уровня: каждый уровень требует 100 * уровень опыта
+        int newLevel = 1;
+        int exp = user.getExperiencePoints();
+        while (exp >= newLevel * 100) {
+            exp -= newLevel * 100;
+            newLevel++;
+        }
+
+        if (newLevel > user.getLevelNum()) {
+            log.info("🎉 Уровень повышен! {} → {}", user.getLevelNum(), newLevel);
+            user.setLevelNum(newLevel);
+        }
+
+        user.setLastActivityAt(LocalDateTime.now());
 
         User updatedUser = userRepository.save(user);
+        log.info("✅ Текущий опыт: {}, уровень: {}", updatedUser.getExperiencePoints(), updatedUser.getLevelNum());
+
         return convertToDTO(updatedUser);
     }
 
     @Transactional
     public UserDTO incrementStreak(Long id) {
-        log.info("Увеличение стрика для пользователя с id: {}", id);
+        log.info("🔥 Увеличение стрика для пользователя с id: {}", id);
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден с id: " + id));
 
-        user.setStreakDays(user.getStreakDays() + 1);
-        user.setLastActivityAt(java.time.LocalDateTime.now());
+        int oldStreak = user.getStreakDays();
+        user.setStreakDays(oldStreak + 1);
+        user.setLastActivityAt(LocalDateTime.now());
 
         User updatedUser = userRepository.save(user);
+        log.info("✅ Стрик пользователя {}: {} → {} дней", id, oldStreak, updatedUser.getStreakDays());
+
+        // 🚀 2. ОТПРАВЛЯЕМ СОБЫТИЕ - Стрик обновлен!
+        eventProducer.sendStreakUpdatedEvent(
+                updatedUser.getId(),
+                updatedUser.getStreakDays(),
+                updatedUser.getStreakDays() // longest streak (пока так)
+        );
+
         return convertToDTO(updatedUser);
     }
 

@@ -1,7 +1,6 @@
 package com.fitness.gamification.config;
 
-
-import com.fitness.core.dto.ExerciseDTO;
+import com.fitness.core.event.FitnessEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,35 +18,42 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class KafkaConfig {
+public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    @Value("${spring.kafka.consumer.group-id}")
+    @Value("${spring.kafka.consumer.group-id:gamification-service-group}")
     private String groupId;
 
     @Bean
-    public ConsumerFactory<String, String> stringConsumerFactory() {
+    public ConsumerFactory<String, FitnessEvent> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
 
-        return new DefaultKafkaConsumerFactory<>(props);
+        JsonDeserializer<FitnessEvent> deserializer = new JsonDeserializer<>(FitnessEvent.class);
+        deserializer.addTrustedPackages("com.fitness.core.event", "com.fitness.core.dto");
+        deserializer.setUseTypeHeaders(false);
+
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                deserializer
+        );
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String>
-    stringKafkaListenerContainerFactory() {
-
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, FitnessEvent>
+    kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, FitnessEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(stringConsumerFactory());
-        factory.setConcurrency(1);
-
+        factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 }

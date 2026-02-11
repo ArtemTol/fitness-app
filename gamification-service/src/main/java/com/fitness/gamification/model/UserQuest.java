@@ -30,6 +30,9 @@ public class UserQuest {
     @Column(name = "progress", nullable = false)
     private Integer progress = 0;
 
+    @Column(nullable = false)
+    private Integer goal;
+
     @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted = false;
 

@@ -5,12 +5,15 @@ import com.fitness.gamification.dto.CreateAchievementRequest;
 import com.fitness.gamification.dto.UpdateAchievementRequest;
 import com.fitness.gamification.exception.ResourceNotFoundException;
 import com.fitness.gamification.model.Achievement;
+import com.fitness.gamification.model.UserAchievement;
 import com.fitness.gamification.repository.AchievementRepository;
+import com.fitness.gamification.repository.UserAchievementRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +23,8 @@ import java.util.stream.Collectors;
 public class AchievementService {
 
     private final AchievementRepository achievementRepository;
+    private final UserAchievementRepository userAchievementRepository;
+    private final GamificationEventProducer eventProducer;
 
     public List<AchievementDTO> getAllAchievements(Boolean activeOnly) {
         log.info("Getting all achievements, activeOnly: {}", activeOnly);
@@ -103,6 +108,96 @@ public class AchievementService {
 
         achievementRepository.deleteById(id);
         log.info("Achievement deleted successfully with id: {}", id);
+    }
+
+    // ============= МЕТОДЫ ДЛЯ ГЕЙМИФИКАЦИИ =============
+
+    @Transactional
+    public void grantWelcomeAchievement(Long userId) {
+        Achievement welcome = achievementRepository.findByCondition("WELCOME")
+                .orElseGet(() -> {
+                    Achievement achievement = new Achievement();
+                    achievement.setName("Добро пожаловать!");
+                    achievement.setDescription("Начни свой путь в фитнесе");
+                    achievement.setExpReward(50);
+                    achievement.setCondition("WELCOME");  // ✅ condition, а не conditionType
+                    achievement.setIsActive(true);
+                    achievement.setIconUrl("/achievements/welcome.png");
+                    return achievementRepository.save(achievement);
+                });
+
+        // Проверяем, не выдавали ли уже
+        if (!userAchievementRepository.existsByUserIdAndAchievementId(userId, welcome.getId())) {
+            UserAchievement userAchievement = new UserAchievement();
+            userAchievement.setUserId(userId);
+            userAchievement.setAchievement(welcome);
+            userAchievement.setEarnedAt(LocalDateTime.now());
+            userAchievement.setProgress(1);
+            userAchievement.setIsEarned(true);
+
+            userAchievementRepository.save(userAchievement);
+
+            // 🚀 ОТПРАВЛЯЕМ СОБЫТИЕ - Достижение получено!
+            eventProducer.publishAchievementEarned(
+                    userId,
+                    welcome.getCondition(),
+                    welcome.getName(),
+                    welcome.getDescription(),
+                    welcome.getIconUrl(),
+                    welcome.getExpReward()
+            );
+
+            log.info("🏅 Приветственное достижение выдано пользователю {}", userId);
+        }
+    }
+
+    @Transactional
+    public void checkAndAward(Long userId, String condition, String name) {
+        Achievement achievement = achievementRepository.findByCondition(condition)
+                .orElseGet(() -> {
+                    Achievement newAchievement = new Achievement();
+                    newAchievement.setName(name);
+                    newAchievement.setDescription("Достижение за " + name);
+                    newAchievement.setExpReward(100);
+                    newAchievement.setCondition(condition);
+                    newAchievement.setIsActive(true);
+                    return achievementRepository.save(newAchievement);
+                });
+
+        if (!userAchievementRepository.existsByUserIdAndAchievementId(userId, achievement.getId())) {
+            UserAchievement userAchievement = new UserAchievement();
+            userAchievement.setUserId(userId);
+            userAchievement.setAchievement(achievement);
+            userAchievement.setEarnedAt(LocalDateTime.now());
+            userAchievement.setProgress(1);
+            userAchievement.setIsEarned(true);
+
+            userAchievementRepository.save(userAchievement);
+
+            // 🚀 ОТПРАВЛЯЕМ СОБЫТИЕ - Достижение получено!
+            eventProducer.publishAchievementEarned(
+                    userId,
+                    achievement.getCondition(),
+                    achievement.getName(),
+                    achievement.getDescription(),
+                    achievement.getIconUrl(),
+                    achievement.getExpReward()
+            );
+
+            log.info("🏅 Достижение '{}' выдано пользователю {}", name, userId);
+        }
+    }
+
+    public void checkWorkoutAchievements(Long userId, int duration) {
+        // TODO: Подсчитать количество тренировок пользователя
+        long workoutCount = 1; // Временно
+
+        if (workoutCount == 1) {
+            checkAndAward(userId, "FIRST_WORKOUT", "Первая тренировка");
+        }
+        if (duration >= 60) {
+            checkAndAward(userId, "WORKOUT_60MIN", "Часовая тренировка");
+        }
     }
 
     private AchievementDTO convertToDTO(Achievement achievement) {

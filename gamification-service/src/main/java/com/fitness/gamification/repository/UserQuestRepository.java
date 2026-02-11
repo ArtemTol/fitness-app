@@ -1,7 +1,7 @@
 package com.fitness.gamification.repository;
 
-import com.fitness.gamification.model.UserQuest;
 import com.fitness.gamification.model.Quest;
+import com.fitness.gamification.model.UserQuest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +14,6 @@ public interface UserQuestRepository extends JpaRepository<UserQuest, Long> {
     Optional<UserQuest> findByUserIdAndQuestId(Long userId, Long questId);
     List<UserQuest> findByUserIdAndIsCompletedTrue(Long userId);
     List<UserQuest> findByUserIdAndQuest_TypeAndIsCompletedFalse(Long userId, Quest.QuestType type);
+
+    boolean existsByUserIdAndQuestIdAndIsCompletedFalse(Long userId, Long questId);
 }

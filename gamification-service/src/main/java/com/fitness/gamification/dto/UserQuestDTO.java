@@ -13,6 +13,7 @@ public class UserQuestDTO {
     private Integer progress;
     private Boolean isCompleted;
     private Boolean claimedReward;
+    private Integer goal;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime completedAt;
